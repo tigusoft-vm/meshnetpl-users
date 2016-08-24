@@ -9,6 +9,7 @@ this key A did sign other key, key B (0x90C8019E36C2E964), so now you can trust 
 with command like:
 gpg --with-fingerprint -k | egrep "36C2 E964" # check any key look-alike imposters
 gpg --with-fingerprint -k | egrep "2346 C9A6" # check any key look-alike imposters
+echo "SEARCH history, git log, git tag, git .pgp files, ask friends, for the correct fingerprint of key A" ; read _
 gpg --keyserver pgp.mit.edu --search-keys 0x74810B012346C9A6
 gpg --keyserver pgp.mit.edu --search-keys 0x90C8019E36C2E964
 gpg --check-sigs 0x90C8019E36C2E964 # it MUST say 'sig!  0x74810B012346C9A6 ...' 
@@ -29,7 +30,6 @@ Details:
 2) verify that we can trust that key
 3) confirm that this key did authorized an other key: key 0x90C8019E36C2E964
 4) check that key 0x90C8019E36C2E964 signs the downloads (binaries, git commits)
-
 
 0)
 Start with a secure computer, and check what PGP keys are already known on this user,
@@ -73,7 +73,8 @@ It should show:
 71A3 B167 3540 5025 D447  E8F2 7481 0B01 2346 C9A6
 (field "fingerprint" in the "pub" part of key. there are usually 2 parts.)
 
-THIS IS VERY IMPORTANT:
+!!! NEXT STEP IS VERY IMPORTANT !!!
+
 Now, check with as many sources as possible, that is:
 Download key from other pages, ask other people, show them the full fingerprint and ask to confirm.
 Best do that in person or over various secured (signed) methods of communication.
@@ -85,7 +86,14 @@ gpg --import ./contrib/gitian-keys/laanwj-key.pgp
 when you import same key from another source, if it matched then GPG will say:
 gpg: key 0x74810B012346C9A6: .... not changed.
 
-The more methods and sources you use the better.
+The more methods and sources you use the better!
+
+Other sources could include: searching archives of mailing list (best if it's on your harddrive),
+seeing git log signatures (git log --show-signature), and git tags (git tag, then git tag -v v.....),
+e-mails that you have, downloads from https://github and https://bitcoin.org and other sites
+from normal IP, but also from VPN, from other your servers (e.g. in other countries) and such.
+
+Of course meeting in person a developer, or even the owner of the key in question is even more perfect.
 
 3) 
 Now do the same for the other key, key B: get key 0x90C8019E36C2E964, e.g. from:
@@ -184,19 +192,3 @@ more advaned use of GPG).
 If in doubt always anyway also check the full fingerprint of key B on top.
 
 Proceed with "sha256sum -c SHA256SUMS" as in previous point.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
