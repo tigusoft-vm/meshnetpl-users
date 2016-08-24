@@ -1,0 +1,180 @@
+
+In addition we could write a small summary for the users. 
+
+Short guide for Linux that guarantees you have the correctly signed files even if your Internet
+connection, and https/SSL would be already compromised.
+
+Summary: key A (0x74810B012346C9A6) is well-known (ask everyone, and you probably have it in some history),
+this key A did sign other key, key B (0x90C8019E36C2E964), so now you can trust key B to sign binary releases.
+
+Details:
+
+0) check current gpg
+1) we start with the well-known, older, personal key 0x74810B012346C9A6
+2) verify that we can trust that key
+3) confirm that this key did authorized an other key: key 0x90C8019E36C2E964
+4) check that key 0x90C8019E36C2E964 signs the downloads (binaries, git commits)
+
+
+0)
+Start with a secure computer, and check what PGP keys are already known on this user,
+e.g. with command:
+gpg --with-fingerprint -k
+Check the list of printed keys to avoid risk of someone trying to trick you by getting you
+to accept a simmilary-looking but false key (with similar fingerprint).
+
+a) gpg --with-fingerprint -k | egrep "36C2 E964"
+This should produce no output, or only exactly this fingerprint:
+      Key fingerprint = 01EA 5486 DE18 A882 D4C2  6845 90C8 019E 36C2 E964
+
+b) gpg --with-fingerprint -k | egrep "2346 C9A6"
+This should produce no output, or only exactly this fingerprint:
+      Key fingerprint = 71A3 B167 3540 5025 D447  E8F2 7481 0B01 2346 C9A6
+
+If it would show another key that in fact has matching ending, this means someone created such
+key AND already got you somehow to accept it (at least import it), so be very careful, and inform
+Bitcoin developers and the community. (Then you should try again, on other user, if not on another computer).
+
+1)
+Obtain the key A that claims to be laanwj's personal key 0x74810B012346C9A6 *from any source*
+
+If a hacker would manage to hijack your download here, we will detect that in next step.
+
+One options is to use GPG program command:
+gpg --keyserver pgp.mit.edu --search-keys 0x74810B012346C9A6
+
+That should show just (1) key to download. If there are more, then someone already tries to impersonate
+laanwj, then download one of them and use next step to test was it correct.
+
+Other source of the key can be web file download: https://bitcoin.org/laanwj.asc
+then import the file with command:
+gpg --import laanwj.asc  (in directory where the downloaded file is placed).
+
+2)
+See full fingerprint of the key A you imported, run commad:
+
+gpg --fingerprint 0x74810B012346C9A6
+It should show:
+71A3 B167 3540 5025 D447  E8F2 7481 0B01 2346 C9A6
+(field "fingerprint" in the "pub" part of key. there are usually 2 parts.)
+
+THIS IS VERY IMPORTANT:
+Now, check with as many sources as possible, that is:
+Download key from other pages, ask other people, show them the full fingerprint and ask to confirm.
+Best do that in person or over various secured (signed) methods of communication.
+Remember that https, SSL, SSL secured chat, encrypted messagers like Skype, all could be targeted.
+Check old files, you will have that key file in old bitcoin source files also, e.g. in
+./contrib/gitian-keys/laanwj-key.pgp
+which you of course import as:
+gpg --import ./contrib/gitian-keys/laanwj-key.pgp
+when you import same key from another source, if it matched then GPG will say:
+gpg: key 0x74810B012346C9A6: .... not changed.
+
+The more methods and sources you use the better.
+
+3) 
+Now do the same for the other key, key B: get key 0x90C8019E36C2E964, e.g. from:
+gpg --keyserver pgp.mit.edu --search-keys 0x90C8019E36C2E964
+or web file download: https://bitcoin.org/laanwj-releases.asc
+
+And verify it using command:
+gpg --check-sigs 0x90C8019E36C2E964
+this command will sign who does trust the key 0x90C8019E36C2E964 to be trustworthy.
+It will print a list, probably of dozen signatures.
+One of them should say:
+sig!         0x74810B012346C9A6 ...
+it is important that the first long number on this line will be 0x74810B012346C9A6,
+and that it will say "sig!" including the exclamation mark '!' at the exact begining of the line.
+
+This means that the key A 0x74810B012346C9A6 says that this other key B 0x90C8019E36C2E964 is valid according to him.
+And we already established key A 0x74810B012346C9A6 is valid in point (2) of this tutorial, so now we can
+as well trust the key B 0x90C8019E36C2E964 to sign releases.
+
+4) Now you are trusting the key B 0x90C8019E36C2E964 and you can check if bitcoin binaries are correctly signed with it.
+
+4a)
+You download the binaries to check:
+
+Get file you want, e.g.:
+https://bitcoin.org/bin/bitcoin-core-0.13.0/bitcoin-0.13.0-x86_64-linux-gnu.tar.gz
+or other file from files available at:
+https://bitcoin.org/bin/bitcoin-core-0.13.0/
+*WARNING* of course always download the latest stable version available, this 0.13.0 is just an example!
+
+Now, download the chcksums file from same directory, e.g.:
+https://bitcoin.org/bin/bitcoin-core-0.13.0/SHA256SUMS.asc
+
+Place both of this files in same directory.
+
+4b)
+
+Now verify and "unpack" (extract) the checksums file:
+gpg SHA256SUMS.asc
+it must say that this file was correctly signed by key B:
+gpg: Signature made .....................
+gpg:                using RSA key 0x90C8019E36C2E964
+gpg: Good signature from .......................
+
+and below it will probably say that you did not yet marked your trust for this signature, and will show it's full fingerprint
+that YOU MUST check:
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: 01EA 5486 DE18 A882 D4C2  6845 90C8 019E 36C2 E964
+
+The fingerprint must be of course the one that you previously checked, you can see it again with:
+gpg --fingerprint 0x90C8019E36C2E964
+...
+      Key fingerprint = 01EA 5486 DE18 A882 D4C2  6845 90C8 019E 36C2 E964
+...
+
+Compare this numbers.
+
+
+4c) 
+
+Other method, is to permanently tell GPG program that you do trust this key B
+and that it should stop showing the WARNING as above.
+
+To do it, first you need to have a GPG key of your own (that is how GPG works)
+
+If you do not have one here yet, then create one usng:
+gpg --gen-key
+and choos options:  1 (RSA and RSA....) , 4096 (key size), 10y (valid for),  y,  
+Realname/email/comments as you want (the email does not have to be valid, can be made up),
+O (okay to continue),
+now write a password (no way to recover it. it will be needed when you trust new keys for example).
+Now you will need to wait (1-10 minutes. If you move mouse or do other thnings on computer then it goes faster because
+it is used as random generator).
+
+Once this is done, to trust the key B permanently you can do:
+
+gpg --edit-key 0x90C8019E36C2E964
+in the gpg shell that opens, type command "fpr" to again see full fingerprint,
+check it for the last time.
+Then run command "lsign" and sign it. You must set highest trust level here (unless using WoT instead...)
+Finally do command "quit".
+
+Now command
+gpg SHA256SUMS.asc
+will at end say
+gpg: Good signature from ..............
+which means this is some signature that you trusted (or that you have trusted a web-of-trust that trusts it, it's
+more advaned use of GPG).
+If in doubt always anyway also check the full fingerprint of key B on top.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
