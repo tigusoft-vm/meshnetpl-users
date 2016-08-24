@@ -5,7 +5,22 @@ Short guide for Linux that guarantees you have the correctly signed files even i
 connection, and https/SSL would be already compromised.
 
 Summary: key A (0x74810B012346C9A6) is well-known (ask everyone, and you probably have it in some history),
-this key A did sign other key, key B (0x90C8019E36C2E964), so now you can trust key B to sign binary releases.
+this key A did sign other key, key B (0x90C8019E36C2E964), so now you can trust key B to sign binary releases,
+with command like:
+gpg --with-fingerprint -k | egrep "36C2 E964" # check any key look-alike imposters
+gpg --with-fingerprint -k | egrep "2346 C9A6" # check any key look-alike imposters
+gpg --keyserver pgp.mit.edu --search-keys 0x74810B012346C9A6
+gpg --keyserver pgp.mit.edu --search-keys 0x90C8019E36C2E964
+gpg --check-sigs 0x90C8019E36C2E964 # it MUST say 'sig!  0x74810B012346C9A6 ...' 
+echo "CHECK output of above, is it signed, abort if not." ; read _
+
+Now the "other" key is ready to be used. Use it as always, for example:
+wget https://bitcoin.org/bin/bitcoin-core-0.13.0/bitcoin-0.13.0-x86_64-linux-gnu.tar.gz
+wget https://bitcoin.org/bin/bitcoin-core-0.13.0/SHA256SUMS.asc
+gpg SHA256SUMS.asc
+echo "CHECK if this file was signed by expected full fingerprint of 0x90C8019E36C2E964; Abort if not." ; read _
+sha256sum -c SHA256SUMS
+echo "Done, you can use ONLY this files that are listed here as '......: OK'"
 
 Details:
 
@@ -129,6 +144,12 @@ gpg --fingerprint 0x90C8019E36C2E964
 
 Compare this numbers.
 
+sha256sum -c SHA256SUMS
+Done, you can use ONLY this files that are listed here as '......: OK'.
+There will be warnings about missing files that you do not have.
+If any file would be shown as not matching  / bad checksum, then please warn the community 
+and upload the invalid file to public to check.
+
 
 4c) 
 
@@ -162,6 +183,7 @@ which means this is some signature that you trusted (or that you have trusted a 
 more advaned use of GPG).
 If in doubt always anyway also check the full fingerprint of key B on top.
 
+Proceed with "sha256sum -c SHA256SUMS" as in previous point.
 
 
 
